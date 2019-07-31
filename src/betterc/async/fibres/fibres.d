@@ -107,13 +107,11 @@ public:
         // Create a fibre on the other thread
         auto threadMgr = getFibreThread(threadId);
 
-         printf("async() %s, selected thread %s to run job\n\n", getCurrentFibre().getName(), threadMgr.getName());
+        printf("async() %s, selected thread %s to run job\n\n", getCurrentFibre().getName(), threadMgr.getName());
 
-
-        // Create the fibre but don't make it runnable yet
         auto pending = PendingResult.make!R();
 
-        auto fibre = threadMgr.createFibre!R(userFunc, pending);
+        auto fibre = threadMgr.createFibre!R(userFunc, pending, delayMillis);
 
         return pending;
     }

@@ -68,7 +68,7 @@ void asyncExample() {
         printf("%s async calculating result ...\n", fibre.getName());
 
         return 7;
-    });
+    }, 1);
 
     // Wait for the result
     int r = pending.await!int();

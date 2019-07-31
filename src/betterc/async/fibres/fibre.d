@@ -22,13 +22,13 @@ private:
     FibreThread* fibreThread;
     char[32] name;
     FibreStatus status;
-    bool _isMainFibre;
+    bool _isMainFibre;              // true if this is the main thread fibre
 
-    void* args;             // may be null
-    void* resultPtr;        // may be null
-    void* params;           // may not be used
-
-    PendingResult* pendingResult;   // may be null
+    void* args;                     // may be unused
+    void* resultPtr;                // may be unused
+    void* params;                   // may be unused
+    PendingResult* pendingResult;   // may be unused
+    ulong delay;                    // may be unused
 public:
 
     auto getHandle()        { return handle; }
@@ -38,6 +38,7 @@ public:
     auto getResultPtr()     { return resultPtr; }
     auto getArgs()          { return args; }
     auto isMainFibre()      { return _isMainFibre; }
+    auto isDelayed()        { return delay>0; }
 
     void setStatus(FibreStatus status) { this.status = status; }
     void setResultPtr(void* addr)      { this.resultPtr = addr; }
@@ -67,7 +68,12 @@ public:
 
         return f;
     }
-    static Fibre* makeSubFibre(R)(FibreThread* fibreThread, UserFibreFunc!R userFunc, PendingResult* pending, uint index) {
+    static Fibre* makeSubFibre(R)(FibreThread* fibreThread,
+                                  UserFibreFunc!R userFunc,
+                                  PendingResult* pending,
+                                  uint index,
+                                  ulong delayMillis = 0)
+    {
         auto f = heapAlloc!Fibre;
 
         f.fibreThread   = fibreThread;
@@ -86,6 +92,10 @@ public:
         f.status = FibreStatus.RUNNABLE;
 
         f.setName(index);
+
+        if(delayMillis>0) {
+            // todo - handle delay
+        }
 
         return f;
     }

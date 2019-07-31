@@ -149,9 +149,9 @@ public:
 
         free(&this);
     }
-    Fibre* createFibre(R)(UserFibreFunc!R userFunc, PendingResult* pending = null) {
+    Fibre* createFibre(R)(UserFibreFunc!R userFunc, PendingResult* pending = null, ulong delayMillis = 0) {
 
-        auto fibre = Fibre.makeSubFibre!R(&this, userFunc, pending, fibresCreated++);
+        auto fibre = Fibre.makeSubFibre!R(&this, userFunc, pending, fibresCreated++, delayMillis);
 
         printf("%s Created new fibre %s\n", logPrefix.ptr, fibre.getName());
 
@@ -160,7 +160,6 @@ public:
 
         return fibre;
     }
-
     void resumed(Fibre* fibre) {
         /* Just return if the fibre is finished */
         if(fibre.getStatus()==FibreStatus.FINISHED) return;
