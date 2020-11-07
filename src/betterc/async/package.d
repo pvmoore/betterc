@@ -17,6 +17,17 @@ import betterc.async.thread;
 /**
  * Win64 calling convention:
  * https://docs.microsoft.com/en-us/cpp/build/x64-calling-convention?view=vs-2019
+ *
+ * [1 param]  RCX                     | XMM0
+ * [2 params] RCX, RDX                | XMM0, XMM1
+ * [3 params] RCX, RDX, R8            | XMM0, XMM1, XMM2
+ * [4 params] RCX, RDX, R8, R9        | XMM0, XMM1, XMM2, XMM3
+ * [5 params] RCX, RDX, R8, R9, stack | XMM0, XMM1, XMM2, XMM3, stack
+ *
+ * Clobbered:
+ * RAX, RCX, RDX, R8, R9, R10, R11
+ * XMM0-XMM5, upper YMM0-YMM15, upper ZMM0-ZMM15
+ * AVX512: ZMM16-ZMM31, YMM16-YMM31, XMM16-XMM31
  */
 
 /**
