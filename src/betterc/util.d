@@ -26,6 +26,12 @@ template isPrimitiveType(T) {
         is(T==long)  || is(T==ulong) ||
         is(T==float) || is(T==double) || is(T==real);
 }
+template isFloatingPoint(T) {
+    const bool isFloatingPoint =
+        is(T==float) ||
+        is(T==double) ||
+        is(T==real);
+}
 
 /**
  * Returns true if the type has a method with the given name regardless of return type or parameters.

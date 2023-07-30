@@ -47,9 +47,23 @@ private:
     ListOfBuckets buckets;
 
     BucketType* findBucket(K key) {
-        //size_t hash = key.toHash();
+        if(buckets.isEmpty()) {
+            
+        }
+        auto bucket = getHash(key) % buckets.length();
 
         return null;
+    }
+    size_t getHash(K key) {
+        static if(isStruct!K) {
+            return key.toHash();
+        }
+        static if(is(K==double)) {
+            void* p1 = &key;
+            size_t* p2 = cast(size_t*)p1;
+            return *p2;
+        }
+        return cast(size_t)key;
     }
 }
 
