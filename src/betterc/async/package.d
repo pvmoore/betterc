@@ -121,7 +121,7 @@ void sfence() {
     asm pure nothrow @nogc { naked; sfence; ret; }
 }
 
-interface Async {
+struct Async {
 
 }
 

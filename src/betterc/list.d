@@ -10,7 +10,7 @@ private import betterc.all;
 /**
  *  A dynamic array list using malloc, realloc and free.
  */
-struct List(T) {
+struct List(T) { static assert(List!(int).sizeof == 16);
 @nogc:
 nothrow:
 private:
@@ -18,16 +18,20 @@ private:
     int _length = 0;
     int _capacity = 0;
 public:
+    int length() const   { return _length; }
+    int capacity() const { return _capacity; }
+    bool isEmpty() const { return _length==0; }
+
     this(int capacity) {
-        if(capacity>0) {
-            this._capacity = capacity;
-            this._ptr      = cast(T*)malloc(this._capacity*T.sizeof);
+        assert(capacity >= 0);
+        this._capacity = capacity;
+        if(capacity > 0) {
+            this._ptr = cast(T*)malloc(this._capacity*T.sizeof);
         }
     }
-    static auto make(T[] values...) {
-        auto list = List!T(values.length.as!uint);
-        list.add(values);
-        return list;
+    this(T[] values...) {
+        this(values.length.as!int);
+        add(values);
     }
     void destroy() {
         free(_ptr);
@@ -35,10 +39,6 @@ public:
         _length = 0;
         _capacity = 0;
     }
-
-    int length() const   { return _length; }
-    int capacity() const { return _capacity; }
-    bool isEmpty() const { return _length==0; }
 
     extern(D)
     int opApply(int delegate(ref T) @nogc nothrow dg) {

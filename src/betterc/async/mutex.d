@@ -2,13 +2,17 @@ module betterc.async.mutex;
 
 @nogc:
 nothrow:
+extern(C):
 
 private import betterc.all;
-private import core.sys.windows.windows;
+private import core.sys.windows.windows :
+	CloseHandle, CreateMutex, ReleaseMutex, WaitForSingleObject,
+	HANDLE, INFINITE, WAIT_OBJECT_0;
 
 struct Mutex {
 @nogc:
 nothrow:
+
 private:
 	HANDLE handle;
 public:

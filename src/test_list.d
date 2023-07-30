@@ -10,9 +10,32 @@ void testList() {
     printf("Testing List ...\n");
 
     {
-        auto l0 = List!int();
-        assert(l0.capacity==0 && l0.isEmpty && l0.length==0);
+        List!int l;
+        assert(l.capacity==0 && l.isEmpty() && l.length()==0);
+    }
+    {
+        auto l = List!int();
+        assert(l.capacity==0 && l.isEmpty() && l.length()==0);
+    }
+    {
+        auto l = List!int(3);
+        assert(l.capacity==3 && l.isEmpty() && l.length()==0);
+    }
+    {
+        struct S { @nogc: nothrow:
+            List!int l;
 
+            this(int s) {
+                l = List!int(s);
+            }
+        }
+        S s;
+        S s2 = S(2);
+        assert(s.l.capacity==0 && s.l.isEmpty() && s.l.length()==0);
+        assert(s2.l.capacity==2 && s2.l.isEmpty() && s2.l.length()==0);
+    }
+
+    {
         auto l = List!int(10);
         scope(exit) l.destroy();
 
@@ -96,7 +119,7 @@ void testList() {
         assert(l != l3);
 
         // static make
-        auto l4 = List!int.make(5,6,7);
+        auto l4 = List!int(5,6,7);
         assert(l4.length==3);
         assert(l4.getAt(0) == 5);
         assert(l4.getAt(1) == 6);
@@ -105,9 +128,9 @@ void testList() {
         // add(List)
 
         // [1,2,3,4]
-        l.add(List!int.make(5,6,7));
+        l.add(List!int(5,6,7));
         assert(l.length==7);
-        assert(l == List!int.make(1,2,3,4,5,6,7));
+        assert(l == List!int(1,2,3,4,5,6,7));
     }
     {
         auto l = List!int();

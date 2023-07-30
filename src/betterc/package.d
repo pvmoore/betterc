@@ -27,11 +27,13 @@ nothrow:
 
 import betterc.array;
 import betterc.freelist;
+import betterc.HashMap;
 import betterc.linkedlist;
 import betterc.list;
 import betterc.queue;
 import betterc.stack;
 import betterc.stream;
+import betterc.util;
 
 //int printf(immutable(char)* format, ...);
 import core.stdc.stdio  : printf, snprintf;
@@ -52,21 +54,3 @@ void panic(string msg) {
     import core.stdc.stdlib : exit;
     exit(-1);
 }
-
-T as(T,I)(I o) {
-    return cast(T)o;
-}
-
-T* heapAlloc(T)() {
-    return cast(T*)calloc(1, T.sizeof);
-}
-
-/**
- * obj.let
- */
-// alias LET_FUNC(T) = extern(C) void function(T arg) @nogc nothrow;
-// void let(T)(T arg, LET_FUNC!T d) {
-//     if(arg) {
-//         d(arg);
-//     }
-// }

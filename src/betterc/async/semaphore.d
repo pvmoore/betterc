@@ -2,6 +2,7 @@ module betterc.async.semaphore;
 
 @nogc:
 nothrow:
+extern(C):
 
 private import betterc.all;
 private import betterc.async.all;
@@ -10,6 +11,7 @@ private import core.sys.windows.windows;
 struct Semaphore {
 @nogc:
 nothrow:
+
 private:
 	HANDLE handle;
 	int maxCount;

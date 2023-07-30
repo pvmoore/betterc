@@ -5,6 +5,7 @@ import betterc.async;
 
 import core.sys.windows.windows;
 
+extern(C):
 @nogc:
 nothrow:
 
