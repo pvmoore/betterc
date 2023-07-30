@@ -6,6 +6,9 @@ extern(C):
 nothrow:
 
 import betterc.all;
+import core.bitop : bsr;
+
+static assert(HashMap!(int,int).sizeof == 16);
 
 /**
  * K must be one of:
@@ -15,19 +18,20 @@ import betterc.all;
  */
 struct HashMap(K,V)
     if(isPrimitiveType!K || hasMethod!(K,"toHash", size_t))
-{ @nogc: nothrow: static assert(HashMap!(int,int).sizeof == 16);
+{ @nogc: nothrow: 
     int length() const   { return 0; }
     bool isEmpty() const { return length() == 0; }
-    K[] keys()     { return null; }
+    int numBuckets() const { return buckets.capacity(); }
     V[] values()   { return null; }
 
     this(int expectedCapacity) {
-        this.buckets = ListOfBuckets(expectedCapacity);
+        assert(expectedCapacity >= 0);
+        auto cap = 1 << (bsr(expectedCapacity) + 1);
+        this.buckets = ListOfBuckets(cap);
     }
     void destroy() {
         buckets.destroy();
     }
-
     void add(K key, V value) {
 
     }
@@ -35,7 +39,7 @@ struct HashMap(K,V)
         return V.init;
     }
     void clear() {
-
+        buckets.clear();
     }
     bool containsKey(K key) {
         return false;
@@ -55,14 +59,23 @@ private:
         return null;
     }
     size_t getHash(K key) {
+        static if(isString!K) {
+            // Probably the most common map key type
+            size_t hash = 5381;
+            foreach(i; 0..key.length) {
+                hash = ((hash << 5) + hash) + key[i];
+            }
+            return hash;
+        }
         static if(isStruct!K) {
             return key.toHash();
         }
         static if(is(K==double)) {
-            void* p1 = &key;
+            double* p1 = &key;
             size_t* p2 = cast(size_t*)p1;
             return *p2;
         }
+        // K must be some sort of primitive type
         return cast(size_t)key;
     }
 }
@@ -70,6 +83,7 @@ private:
 private:
 
 struct Bucket(K,V) { @nogc:nothrow:
+    static assert(Bucket!(K,V).sizeof == 16);
     union {
         V value;
         V[] values;

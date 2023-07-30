@@ -46,6 +46,9 @@ import core.stdc.string : memset, memmove, memcpy, memcmp;
 //     	}catch(Exception e) {}
 //     }
 
+enum ANSI_RED_BOLD = "\u001b[31;1m".ptr;
+enum ANSI_RESET    = "\u001b[0m".ptr;
+
 void panic(string msg) {
     printf("PANIC!!! ");
     printf(msg.ptr);
@@ -53,4 +56,24 @@ void panic(string msg) {
 
     import core.stdc.stdlib : exit;
     exit(-1);
+}
+void cassert(bool expectedBool, 
+             string msg = null, 
+             string file = __FILE__,
+             int line = __LINE__) {
+    if(!expectedBool) {
+        import core.stdc.stdlib : exit;
+        printf(ANSI_RED_BOLD);
+        printf("\n!!! Assertion failed -->");
+        printf(ANSI_RESET);
+        printf(" %s:%d", file.ptr, line);
+        printf("\u001b[0m");
+        if(msg) {
+            printf(": '%s'\n", msg.ptr);
+        } else {
+            printf("\n");
+        }
+        printf("\n");
+        exit(-1);
+    }
 }

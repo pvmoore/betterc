@@ -3,6 +3,7 @@ module betterc.util;
 import betterc.all;
 import std.traits :
     isSomeFunction,
+    isSomeString,
     Parameters,
     ReturnType;
 
@@ -31,6 +32,12 @@ template isFloatingPoint(T) {
         is(T==float) ||
         is(T==double) ||
         is(T==real);
+}
+template isString(T) {
+    const bool isString = 
+        is(T==string) ||
+        is(T==wstring) ||
+        is(T==dstring);
 }
 
 /**
