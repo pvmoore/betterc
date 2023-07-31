@@ -9,20 +9,23 @@ nothrow:
  *   - primitive type
  *   - struct with size_t toHash() method
  *
+ * TODO - This is currently unstable in that the addresses of values can change 
+ * TODO - Benchmark
+ * TODO - Add hash quality graph
+ * TODO - Implement remove()
+ * TODO - Fix clear(), destroy()
+ * TODO - Use a List of Arenas which use a FreeList for
+ *        storing the KeyValues
+ * Rewrite FreeList to be like common.FreeList (add tests).
  */
 struct HashMap(K,V)
     if(isPrimitiveType!K || hasMethod!(K,"toHash", size_t))
 { @nogc: nothrow:
     int length() const   { return _length; }
     bool isEmpty() const { return _length == 0; }
-    K[] keys() const {
-        // TODO
-        return null;
-    }
-    V[] values() const {
-        // TODO
-        return null;
-    }
+    auto keys() { return KeyIterator!(K,V)(Iterator!(K,V)(buckets)); }
+    auto values() { return ValueIterator!(K,V)(Iterator!(K,V)(buckets)); }
+    auto byKeyValue() { return KeyValueIterator!(K,V)(Iterator!(K,V)(buckets)); }
 
     this(int expectedCapacity) {
         expect(expectedCapacity >= 0);
@@ -30,7 +33,7 @@ struct HashMap(K,V)
         expect(isPowerOf2(cap));
 
         this._length = 0;
-        this.buckets = ListOfBuckets(cap);
+        this.buckets = List!(Bucket!(K,V))(cap);
         this.buckets.length(cap);
     }
     void destroy() {
@@ -44,7 +47,7 @@ struct HashMap(K,V)
         auto b = getBucket(hash);
         if(b.length == 0) {
             b.length = 1;
-            b.single = KeyValue(key, value);
+            b.single = KeyValue!(K,V)(key, value);
             _length++;
         } else if(b.length == 1) {
 
@@ -56,15 +59,14 @@ struct HashMap(K,V)
 
             // This is a new Key
 
-            _length++;
-            b.length = 2;
-
             // Note that this is rubbish
-            auto ptr = cast(KeyValue*)malloc(KeyValue.sizeof * 2);
+            auto ptr = cast(KeyValue!(K,V)*)malloc(KeyValue!(K,V).sizeof * 2);
             ptr[0] = b.single;
-            ptr[1] = KeyValue(key, value);
+            ptr[1] = KeyValue!(K,V)(key, value);
 
             b.ptr = ptr;
+            _length++;
+            b.length = 2;
         } else {
             // Check if this Key exists in the map
             foreach(i; 0..b.length) {
@@ -76,35 +78,37 @@ struct HashMap(K,V)
 
             // This is a new Key
 
+            // Note that this is rubbish
+            b.ptr = realloc(b.ptr, KeyValue!(K,V).sizeof * (b.length+1)).as!(KeyValue!(K,V)*);
+            b.ptr[b.length] = KeyValue!(K,V)(key, value);
+
             _length++;
             b.length++;
-
-            // Note that this is rubbish
-            b.ptr = cast(KeyValue*)realloc(b.ptr, KeyValue.sizeof * b.length);
-            b.ptr[b.length-1] = KeyValue(key, value);
         }
         return this;
     }
     V get(K key) {
+        V* ptr = getPtr(key);
+        if(ptr) return *ptr;
+        return V.init;
+    }
+    V* getPtr(K key) {
         ulong hash = getHash(key);
         printf("get() hash = %llu\n", hash);
         auto b = getBucket(hash);
 
         if(b.length == 1) {
             if(b.single.key == key) {
-                return b.single.value;
+                return &b.single.value;
             }
         } else {
             foreach(i; 0..b.length) {
                 if(b.ptr[i].key == key) {
-                    return b.ptr[i].value;
+                    return &b.ptr[i].value;
                 }
             }
         }
         // We don't have this Key
-        return V.init;
-    }
-    V* getPtr(K key) {
         return null;
     }
 
@@ -123,6 +127,7 @@ struct HashMap(K,V)
         return V.init;
     }
     void clear() {
+        // TODO - free allocs
         buckets.clear();
     }
     bool containsKey(K key) {
@@ -139,21 +144,17 @@ struct HashMap(K,V)
     }
 
 private:
-    alias KeyValue      = KeyValue_T!(K,V);
-    alias Bucket        = Bucket_T!(K,V);
-    alias ListOfBuckets = List!Bucket;
-
     uint _length = 0;
-    ListOfBuckets buckets;
+    List!(Bucket!(K,V)) buckets;
 
     void ensureBucketsAreInitialised() {
         if(buckets.isEmpty()) {
-            this.buckets = ListOfBuckets(DEFAULT_CAPACITY);
+            this.buckets = List!(Bucket!(K,V))(DEFAULT_CAPACITY);
             this.buckets.length(DEFAULT_CAPACITY);
         }
     }
 
-    Bucket* getBucket(size_t hash) {
+    auto getBucket(size_t hash) {
         // This is rubbish
         ensureBucketsAreInitialised();
 
@@ -200,17 +201,105 @@ enum DEFAULT_CAPACITY = 16;
 /**
  * Simple Bucket that holds a length plus either a single value or a ptr to a list of values
  */
-struct Bucket_T(K,V) { align(1):
+struct Bucket(K,V) { align(1):
     // length == 0 --> Empty,
     // length == 1 --> single contains the value
     // length  > 1 --> ptr points to an array of length values (on the heap)
     uint length;
     union {
-        KeyValue_T!(K,V) single;
-        KeyValue_T!(K,V)* ptr;
+        KeyValue!(K,V) single;
+        KeyValue!(K,V)* ptr;
     }
 }
-struct KeyValue_T(K,V) {
+struct KeyValue(K,V) {
     K key;
     V value;
+}
+struct Arena(K,V) {
+    //FreeList freeList;
+    KeyValue!(K,V)* ptr;
+}
+struct KeyValueIterator(K,V) {
+    this(Iterator!(K,V) iter) {
+        this.iter = iter;
+    }
+    extern(D)
+    int opApply(int delegate(KeyValue!(K,V)*) @nogc nothrow dg) {
+        int result = 0;
+        while(iter.hasNext()) {
+            result = dg(iter.next()); 
+            if(result) break;
+        }
+        return result;
+    }
+private:
+    Iterator!(K,V) iter;    
+}
+struct KeyIterator(K,V) {
+    this(Iterator!(K,V) iter) {
+        this.iter = iter;
+    }
+    extern(D)
+    int opApply(int delegate(ref K) @nogc nothrow dg) {
+        int result = 0;
+        while(iter.hasNext()) {
+            result = dg(iter.next().key); 
+            if(result) break;
+        }
+        return result;
+    }
+private:
+    Iterator!(K,V) iter;
+}
+struct ValueIterator(K,V) {
+    this(Iterator!(K,V) iter) {
+        this.iter = iter;
+    }
+    extern(D)
+    int opApply(int delegate(ref V) @nogc nothrow dg) {
+        int result = 0;
+        while(iter.hasNext()) {
+            result = dg(iter.next().value); 
+            if(result) break;
+        }
+        return result;
+    }
+private:
+    Iterator!(K,V) iter;
+}
+struct Iterator(K,V) {
+    this(List!(Bucket!(K,V)) buckets) {
+        this.buckets = buckets;
+        this.bucket = nextPopulatedBucket();
+    }
+    bool hasNext() {
+        return bucket !is null;
+    }
+    auto next() {
+        if(bucket.length == 1) {
+            auto v = &bucket.single;
+            bucket = nextPopulatedBucket();
+            return v;    
+        } 
+        auto v = &bucket.ptr[sub];
+        if(++sub==bucket.length) {
+            bucket = nextPopulatedBucket();
+            sub = 0;
+        }
+        return v;
+    }
+private:
+    List!(Bucket!(K,V)) buckets;
+    int bucketIndex = 0;
+    int sub = 0;
+    Bucket!(K,V)* bucket;
+
+    auto nextPopulatedBucket() {
+        Bucket!(K,V)* b = null;
+        while(bucketIndex < buckets.length()) {
+            b = buckets.getPtrAt(bucketIndex++);
+            if(b.length != 0) return b;
+        }
+        return null;
+    }    
 }
