@@ -155,5 +155,42 @@ void testList() {
         assert(l.contains(3)==true);
         assert(l.contains(10)==false);
     }
+    {   // set length()
+        auto l = List!int(5);
+        expect(0, l.length());
+        expect(5, l.capacity());
+
+        l.add(7);
+        expect(1, l.length());
+        expect(5, l.capacity());
+
+        // Expand to length = 10
+        l.length(10);
+        expect(10, l.length());
+        expect(10, l.capacity());
+        expect(7, l.getAt(0));
+        expect(0, l.getAt(1));
+        expect(0, l.getAt(2));
+        expect(0, l.getAt(3));
+        expect(0, l.getAt(4));
+        expect(0, l.getAt(5));
+        expect(0, l.getAt(6));
+        expect(0, l.getAt(7));
+        expect(0, l.getAt(8));
+        expect(0, l.getAt(9));
+
+        // Shrink to length = 8
+        l.length(8);
+        expect(8, l.length());
+        expect(10, l.capacity());
+        expect(7, l.getAt(0));
+        expect(0, l.getAt(1));
+        expect(0, l.getAt(2));
+        expect(0, l.getAt(3));
+        expect(0, l.getAt(4));
+        expect(0, l.getAt(5));
+        expect(0, l.getAt(6));
+        expect(0, l.getAt(7));
+    }
     printf("List OK\n");
 }

@@ -1,11 +1,36 @@
 module betterc.util;
 
-import betterc.all;
-import std.traits :
-    isSomeFunction,
-    isSomeString,
-    Parameters,
-    ReturnType;
+/*──────────────────────────────────────────────────────────────────────────────────────────────────
+  Template utilities
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+isArray
+isBoolean
+isFloatingPoint
+isInteger
+isPointer
+isSigned
+isString
+isStruct
+isUnsigned
+
+hasMethod
+hasMethodWithName
+
+as
+heapAlloc
+isPowerOf2
+
+──────────────────────────────────────────────────────────────────────────────────────────────────*/
+
+public:
+
+import std.traits : isArray,
+                    isBoolean,
+                    isFloatingPoint,
+                    isPointer,
+                    isSigned,
+                    isUnsigned;
 
 T as(T,I)(I o) {
     return cast(T)o;
@@ -13,6 +38,12 @@ T as(T,I)(I o) {
 
 T* heapAlloc(T)() {
     return cast(T*)calloc(1, T.sizeof);
+}
+
+bool isPowerOf2(T)(T v)
+    if(isInteger!T)
+{
+   return !(v & (v - 1)) && v;
 }
 
 template isStruct(T) {
@@ -27,17 +58,17 @@ template isPrimitiveType(T) {
         is(T==long)  || is(T==ulong) ||
         is(T==float) || is(T==double) || is(T==real);
 }
-template isFloatingPoint(T) {
-    const bool isFloatingPoint =
-        is(T==float) ||
-        is(T==double) ||
-        is(T==real);
+template isInteger(T) {
+    const bool isInteger =
+        is(T==byte)  || is(T==ubyte) ||
+        is(T==short) || is(T==ushort) ||
+        is(T==int)   || is(T==uint) ||
+        is(T==long)  || is(T==ulong) ||
+
+        is(T==const(int));
 }
 template isString(T) {
-    const bool isString = 
-        is(T==string) ||
-        is(T==wstring) ||
-        is(T==dstring);
+    const bool isString = isSomeString!T;
 }
 
 /**
@@ -61,7 +92,7 @@ bool hasMethodWithName(T,string M)()
  *
  * assert(hasMethod!(A,"bar", void, float, bool));
  */
-bool hasMethod(T,string NAME, RET_TYPE, PARAMS...)() {
+bool hasMethod(T, string NAME, RET_TYPE, PARAMS...)() {
     bool result = false;
     bool temp;
     static if(isStruct!T && hasMethodWithName!(T,NAME)) {
@@ -90,9 +121,16 @@ bool hasMethod(T,string NAME, RET_TYPE, PARAMS...)() {
  * obj.let
  */
 // alias LET_FUNC(T) = extern(C) void function(T arg) @nogc nothrow;
-// void let(T)(T arg, LET_FUNC!T d) {
+// void let(T)(T arg, LET_FUNC!T d) if(isPointer!T) {
 //     if(arg) {
 //         d(arg);
 //     }
 // }
 
+private:
+
+import std.traits : isSomeFunction,
+                    isSomeString,
+                    Parameters,
+                    ReturnType;
+import betterc.all;

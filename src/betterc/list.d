@@ -23,10 +23,10 @@ public:
     bool isEmpty() const { return _length==0; }
 
     this(int capacity) {
-        assert(capacity >= 0);
+        expect(capacity >= 0);
         this._capacity = capacity;
         if(capacity > 0) {
-            this._ptr = cast(T*)malloc(this._capacity*T.sizeof);
+            this._ptr = cast(T*)calloc(this._capacity, T.sizeof);
         }
     }
     this(T[] values...) {
@@ -80,7 +80,25 @@ public:
         temp._length = _length;
         return temp;
     }
+    auto length(int newLength) {
+        expect(newLength >= 0);
 
+        if(newLength < _length) {
+            _length = newLength;
+        } else if(newLength > _length) {
+            if(newLength <= _capacity) {
+                _length = newLength;
+            } else {
+                _capacity = newLength;
+                _ptr      = cast(T*)realloc(_ptr, _capacity*T.sizeof);
+
+                memset(_ptr + _length, 0, (newLength-_length)*T.sizeof);
+
+                _length = newLength;
+            }
+        }
+        return this;
+    }
     auto add(T value) {
         grow(1);
         _ptr[_length++] = value;
@@ -103,15 +121,15 @@ public:
         return this;
     }
     T getAt(uint index) {
-        assert(index<_length);
+        boundsCheck(index, 0, _length);
         return _ptr[index];
     }
     T* getPtrAt(uint index) {
-        assert(index<_length);
+        boundsCheck(index, 0, _length);
         return &_ptr[index];
     }
     T removeLast() {
-        assert(!isEmpty);
+        expect(!isEmpty());
         T val = _ptr[_length-1];
         _length--;
         return val;
@@ -202,10 +220,13 @@ private:
             // do nothing
         } else if(_ptr is null) {
             _capacity = count+4;
-            _ptr      = cast(T*)malloc(_capacity*T.sizeof);
+            _ptr      = cast(T*)calloc(_capacity, T.sizeof);
         } else if(_length+count > _capacity) {
+            auto oldCapacity = _capacity;
             _capacity = (_capacity + count)*2;
             _ptr      = cast(T*)realloc(_ptr, _capacity*T.sizeof);
+
+            memset(_ptr + oldCapacity, 0, (_capacity - oldCapacity) * T.sizeof);
         }
     }
 }
