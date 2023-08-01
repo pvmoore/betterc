@@ -1,6 +1,7 @@
 module test;
 
 
+import test_freelist;
 import test_fibres;
 import test_hashmap;
 import test_list;
@@ -25,5 +26,7 @@ void main(int argv, char** args) {
     // testThread();
     // testFibres();
 
-    testHashMap();
+    //testHashMap();
+
+    testFreeList();
 }
