@@ -20,13 +20,14 @@ void main(int argv, char** args) {
 
     // testQueue();
     //testList();
+    //testFreeList();
     // testStack();
     // testLinkedList();
 
     // testThread();
     // testFibres();
 
-    //testHashMap();
+    testHashMap();
 
-    testFreeList();
+    printf("\nPASS\n");
 }

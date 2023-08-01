@@ -121,12 +121,17 @@ public:
         return this;
     }
     T getAt(uint index) {
-        boundsCheck(index, 0, _length);
+        checkBounds(index, 0, _length);
         return _ptr[index];
     }
     T* getPtrAt(uint index) {
-        boundsCheck(index, 0, _length);
+        checkBounds(index, 0, _length);
         return &_ptr[index];
+    }
+    auto setAt(uint index, T value) {
+        checkBounds(index, 0, _length);
+        _ptr[index] = value;
+        return this;
     }
     T removeLast() {
         expect(!isEmpty());

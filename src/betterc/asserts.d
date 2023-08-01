@@ -44,7 +44,7 @@ void expect(T)(T expected, T actual, string file = __FILE__, int line = __LINE__
         expectCommon(&temp[0], file, line);
     }
 }
-void boundsCheck(T)(T value, T min, T maxExclusive, string file = __FILE__, int line = __LINE__)
+void checkBounds(T)(T value, T min, T maxExclusive, string file = __FILE__, int line = __LINE__)
     if(is(T==int) || is(T==uint) || is(T==long) || is(T==ulong))
 {
     version(assert)

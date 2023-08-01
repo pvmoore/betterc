@@ -192,5 +192,17 @@ void testList() {
         expect(0, l.getAt(6));
         expect(0, l.getAt(7));
     }
+    {
+        auto l = List!int(5);
+        l.length(5);
+
+        l.setAt(1, 5);
+        l.setAt(4, 9);
+        expect(0, l.getAt(0));
+        expect(5, l.getAt(1));
+        expect(0, l.getAt(2));
+        expect(0, l.getAt(3));
+        expect(9, l.getAt(4));
+    }
     printf("List OK\n");
 }

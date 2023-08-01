@@ -16,7 +16,6 @@ nothrow:
  * TODO - Fix clear(), destroy()
  * TODO - Use a List of Arenas which use a FreeList for
  *        storing the KeyValues
- * Rewrite FreeList to be like common.FreeList (add tests).
  */
 struct HashMap(K,V)
     if(isPrimitiveType!K || hasMethod!(K,"toHash", size_t))
@@ -216,7 +215,7 @@ struct KeyValue(K,V) {
     V value;
 }
 struct Arena(K,V) {
-    //FreeList freeList;
+    FreeList freeList;
     KeyValue!(K,V)* ptr;
 }
 struct KeyValueIterator(K,V) {
