@@ -27,7 +27,7 @@ nothrow:
 
 import betterc.array;
 import betterc.asserts;
-import betterc.freelist;
+import betterc.FreeList;
 import betterc.HashMap;
 import betterc.linkedlist;
 import betterc.list;

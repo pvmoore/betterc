@@ -9,22 +9,27 @@ nothrow:
 void testFreeList() {
     printf("Testing FreeList ...\n");
 
+    doTest!HeapFreeList();
+}
+private:
+
+void doTest(T)() {
     {
-        FreeList l;
+        T l;
         expect(0, l.numUsed());
         expect(0, l.numFree());
 
         l.initialise(5);
         expect(0, l.numUsed());
         expect(5, l.numFree());
-         
+
         uint[5] a = [
             l.acquire(),
             l.acquire(),
             l.acquire(),
             l.acquire(),
             l.acquire()
-        ]; 
+        ];
         expect(5, l.numUsed());
         expect(0, l.numFree());
 
@@ -33,7 +38,7 @@ void testFreeList() {
         expect(a == [0,1,2,3,4]);
     }
     {
-        auto l = FreeList(5);
+        auto l = T(5);
         uint[5] a = [
             l.acquire(),
             l.acquire(),
@@ -56,7 +61,7 @@ void testFreeList() {
         expect(0, l.acquire());
     }
     {
-        auto l = FreeList(10);
+        auto l = T(10);
         {
             scope(exit) l.destroy();
             expect(0, l.numUsed());
