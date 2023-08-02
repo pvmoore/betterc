@@ -3,6 +3,8 @@ platforms "windows"
 
 buildType "debug" {
 	buildOptions "debugMode" "debugInfo" "alwaysStackFrame" "stackStomping" "warningsAsErrors" "betterC"
+	#dflags "-vtls" platform="dmd"
+	dflags "-vgc" platform="dmd"
 }
 buildType "release" {
 	buildOptions "releaseMode" "optimize" "inline" "noBoundsCheck" "betterC"

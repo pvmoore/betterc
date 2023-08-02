@@ -5,6 +5,12 @@ nothrow:
 
 import betterc.all;
 
+void expectMsg(bool actual, string msg, string file = __FILE__, int line = __LINE__) {
+    version(assert)
+    if(!actual) {
+        expectCommon(msg.ptr, file, line);
+    }
+}
 void expect(bool actual, string file = __FILE__, int line = __LINE__) {
     version(assert)
     if(!actual) {
